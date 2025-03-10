@@ -51,6 +51,7 @@ from ocr_mistral_md import process_pdf_ocr
 from pdf_modules import markdown_to_pdf
 from css import load_css
 from translator import traduzir_texto
+from markdown_utils import process_markdown_content, extract_images_from_html
 
 # Configuração do cliente OpenAI
 def get_openai_client():
