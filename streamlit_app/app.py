@@ -201,48 +201,8 @@ def main():
             
         show_file_details(uploaded_file)
         
-        # Botão para processar o arquivo
-        if st.button("Processar PDF"):
-            with st.spinner("Processando o PDF... Isso pode levar alguns instantes."):
-                try:
-                    # Criar um arquivo temporário com timestamp
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    temp_path = UPLOAD_DIR / f"temp_{timestamp}_{uploaded_file.name}"
-                    
-                    # Salvar o arquivo
-                    with open(temp_path, 'wb') as temp_file:
-                        temp_file.write(uploaded_file.getbuffer())
-                    
-                    try:
-                        # Processar o PDF
-                        full_text, success = process_uploaded_pdf(str(temp_path))
-                        
-                        if success:
-                            st.success("PDF processado com sucesso!")
-                            
-                            # Exibir o texto extraído
-                            st.markdown("### Texto extraído (formato Markdown):")
-                            st.text_area("", full_text, height=200)
-                            
-                            # Armazenar o texto processado na sessão
-                            st.session_state.processed_text = full_text
-                            st.session_state.text_processed = True
-                            
-                    finally:
-                        # Garantir que o arquivo temporário seja sempre removido
-                        if temp_path.exists():
-                            temp_path.unlink()
-                            
-                except Exception as e:
-                    logger.error("Erro inesperado", exc_info=True)
-                    st.error(f"Ocorreu um erro inesperado: {str(e)}")
-    
-    # Limpar arquivos antigos periodicamente
-    cleanup_old_files()
-    
-    # Botão de tradução fora do bloco de processamento do PDF
-    if st.session_state.get('text_processed', False):
-        if st.button("Traduzir para português"):
+        # Botão para traduzir o arquivo (processamento + tradução em sequência)
+        if st.button("Traduzir para o Português"):
             try:
                 client = get_openai_client()
                 
@@ -251,71 +211,109 @@ def main():
                 progress_bar = progress_container.progress(0)
                 status_text = st.empty()
                 
-                def update_progress(current, total):
-                    progress = current / total
-                    progress_bar.progress(progress)
-                    status_text.text(f"Traduzindo... {current}/{total} linhas ({int(progress * 100)}%)")
+                # Fase 1: Processamento do PDF
+                status_text.text("Lendo o PDF... Isso pode levar alguns instantes.")
+                progress_bar.progress(0.1)  # Mostrar algum progresso inicial
                 
-                # Iniciar a tradução com a barra de progresso
-                texto_traduzido = traduzir_texto(
-                    st.session_state.processed_text, 
-                    client,
-                    progress_callback=update_progress
-                )
+                # Criar um arquivo temporário com timestamp
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                temp_path = UPLOAD_DIR / f"temp_{timestamp}_{uploaded_file.name}"
                 
-                # Limpar a barra de progresso e mostrar sucesso
-                progress_container.empty()
-                status_text.empty()
-                st.success("Tradução concluída com sucesso!")
+                # Salvar o arquivo
+                with open(temp_path, 'wb') as temp_file:
+                    temp_file.write(uploaded_file.getbuffer())
                 
-                # Exibir o texto traduzido
-                st.markdown("### Texto traduzido:")
-                st.text_area("", texto_traduzido, height=200)
-                
-                # Criar colunas para os botões de download
-                col1, col2, col3 = st.columns(3)
-                
-                # Botão para download do resultado em Markdown original
-                with col1:
-                    output_filename = Path(uploaded_file.name).stem
-                    st.download_button(
-                        label="Baixar Markdown original",
-                        data=st.session_state.processed_text,
-                        file_name=f"{output_filename}.md",
-                        mime="text/markdown",
+                try:
+                    # Processar o PDF
+                    full_text, success = process_uploaded_pdf(str(temp_path))
+                    
+                    if not success:
+                        st.error("Erro ao processar o PDF.")
+                        return
+                    
+                    # Armazenar o texto processado na sessão
+                    st.session_state.processed_text = full_text
+                    
+                    # Atualizar progresso após processamento do PDF
+                    progress_bar.progress(0.3)
+                    status_text.text("PDF processado com sucesso! Iniciando tradução...")
+                    
+                    # Fase 2: Tradução
+                    def update_progress(current, total):
+                        # Ajustar a barra de progresso para começar de 30% (processamento do PDF)
+                        # e ir até 100% (tradução completa)
+                        progress = 0.3 + (current / total * 0.7)
+                        progress_bar.progress(progress)
+                        status_text.text(f"Traduzindo... {current}/{total} linhas ({int((current/total) * 100)}%)")
+                    
+                    # Iniciar a tradução com a barra de progresso
+                    texto_traduzido = traduzir_texto(
+                        full_text, 
+                        client,
+                        progress_callback=update_progress
                     )
-                
-                # Botão para download do resultado em Markdown traduzido
-                with col2:
-                    st.download_button(
-                        label="Baixar Markdown traduzido",
-                        data=texto_traduzido,
-                        file_name=f"{output_filename}_traduzido.md",
-                        mime="text/markdown",
-                    )
-                
-                # Botão para download do PDF formatado
-                with col3:
-                    with st.spinner("Gerando PDF formatado..."):
-                        pdf_bytes = generate_formatted_pdf(texto_traduzido)
+                    
+                    # Limpar a barra de progresso e mostrar sucesso
+                    progress_container.empty()
+                    status_text.empty()
+                    st.success("Tradução concluída com sucesso!")
+                    
+                    # Exibir o texto original extraído
+                    st.markdown("### Texto extraído (formato Markdown):")
+                    st.text_area("", full_text, height=200)
+                    
+                    # Exibir o texto traduzido
+                    st.markdown("### Texto traduzido:")
+                    st.text_area("", texto_traduzido, height=200)
+                    
+                    # Criar colunas para os botões de download
+                    col1, col2, col3 = st.columns(3)
+                    
+                    # Botão para download do resultado em Markdown original
+                    with col1:
+                        output_filename = Path(uploaded_file.name).stem
+                        st.download_button(
+                            label="Baixar Markdown original",
+                            data=full_text,
+                            file_name=f"{output_filename}.md",
+                            mime="text/markdown",
+                        )
+                    
+                    # Botão para download do resultado em Markdown traduzido
+                    with col2:
+                        st.download_button(
+                            label="Baixar Markdown traduzido",
+                            data=texto_traduzido,
+                            file_name=f"{output_filename}_traduzido.md",
+                            mime="text/markdown",
+                        )
+                    
+                    # Botão para download do PDF formatado
+                    with col3:
+                        with st.spinner("Gerando PDF formatado..."):
+                            pdf_bytes = generate_formatted_pdf(texto_traduzido)
+                            
+                            if pdf_bytes:
+                                st.download_button(
+                                    label="Baixar PDF traduzido",
+                                    data=pdf_bytes,
+                                    file_name=f"{output_filename}_traduzido.pdf",
+                                    mime="application/pdf",
+                                )
+                            else:
+                                st.error("Não foi possível gerar o PDF formatado")
+                                
+                finally:
+                    # Garantir que o arquivo temporário seja sempre removido
+                    if temp_path.exists():
+                        temp_path.unlink()
                         
-                        if pdf_bytes:
-                            st.download_button(
-                                label="Baixar PDF traduzido",
-                                data=pdf_bytes,
-                                file_name=f"{output_filename}_traduzido.pdf",
-                                mime="application/pdf",
-                            )
-                            
-                            # Adicionar um previsualizador do PDF
-                            st.markdown("### Prévia do PDF traduzido:")
-                            display_pdf_preview(pdf_bytes)
-                        else:
-                            st.error("Não foi possível gerar o PDF formatado")
-                            
             except Exception as e:
-                logger.error("Erro durante a tradução", exc_info=True)
-                st.error(f"Ocorreu um erro durante a tradução: {str(e)}")
+                logger.error("Erro inesperado", exc_info=True)
+                st.error(f"Ocorreu um erro inesperado: {str(e)}")
+    
+    # Limpar arquivos antigos periodicamente
+    cleanup_old_files()
 
 if __name__ == "__main__":
     main()
