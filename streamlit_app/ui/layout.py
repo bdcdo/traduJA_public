@@ -26,8 +26,9 @@ def create_header():
     """
     Cria o cabeçalho da aplicação.
     """
-    st.title("TraduJÁ")
-    st.markdown("### Utilize IA para finalmente entender!")
+    # Usar div estilizada em vez de h1/h3 para evitar completamente o comportamento de âncora
+    st.markdown('<div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem; text-align: center;">TraduJÁ</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">Utilize IA para finalmente entender!</div>', unsafe_allow_html=True)
 
 def create_footer():
     """
