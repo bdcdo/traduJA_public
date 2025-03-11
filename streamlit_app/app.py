@@ -50,7 +50,7 @@ add_project_root_to_path()
 from ocr_mistral_md import process_pdf_ocr
 from pdf_modules import markdown_to_pdf
 from css import load_css
-from translator import traduzir_texto
+from translator import traduzir_texto, NOMES_IDIOMAS
 from markdown_utils import process_markdown_content, extract_images_from_html
 
 # Configuração do cliente OpenAI
@@ -130,22 +130,6 @@ def generate_formatted_pdf(markdown_text: str) -> Optional[bytes]:
         logger.error(f"Erro ao gerar PDF formatado: {str(e)}", exc_info=True)
         return None
 
-def show_file_details(uploaded_file) -> None:
-    """
-    Exibe os detalhes do arquivo carregado.
-    
-    Args:
-        uploaded_file: Arquivo carregado pelo usuário
-    """
-    file_details = {
-        "Nome do arquivo": uploaded_file.name,
-        "Tipo de arquivo": uploaded_file.type,
-        "Tamanho": f"{uploaded_file.size / 1024:.2f} KB"
-    }
-    st.write("### Detalhes do arquivo:")
-    for key, value in file_details.items():
-        st.write(f"- **{key}:** {value}")
-
 def display_pdf_preview(pdf_bytes: bytes) -> None:
     """
     Exibe uma prévia do PDF na interface.
@@ -182,12 +166,22 @@ def main():
     # Aplicar CSS personalizado
     st.markdown(load_css(), unsafe_allow_html=True)
     
-    # Cabeçalho
-    st.title("TraduJA - Conversor PDF para Markdown")
-    st.markdown("""
-    ### Converta documentos PDF para formato Markdown e traduza para português
+    # Dicionário de idiomas suportados
+    IDIOMAS_SUPORTADOS = {
+        "Inglês": "en",
+        "Português": "pt",
+        "Espanhol": "es",
+        "Francês": "fr",
+        "Alemão": "de",
+        "Italiano": "it"
+    }
     
-    Faça upload de um arquivo PDF para convertê-lo em texto formatado em Markdown e traduzir para português.
+    # Cabeçalho
+    st.title("TraduJÁ")
+    st.markdown("""
+    ### Utilize IA para finalmente entender!
+    
+    Faça upload de um arquivo PDF para traduzi-lo para o idioma desejado.
     """)
     
     # Upload de arquivo
@@ -199,11 +193,26 @@ def main():
         if not is_valid:
             st.error(error_message)
             return
-            
-        show_file_details(uploaded_file)
+        
+        # Seletores de idioma
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            idioma_origem = st.selectbox(
+                "Idioma do documento original:",
+                options=list(IDIOMAS_SUPORTADOS.keys()),
+                index=0  # Inglês como padrão
+            )
+        
+        with col2:
+            idioma_destino = st.selectbox(
+                "Idioma para tradução:",
+                options=list(IDIOMAS_SUPORTADOS.keys()),
+                index=1  # Português como padrão
+            )
         
         # Botão para traduzir o arquivo (processamento + tradução em sequência)
-        if st.button("Traduzir para o Português"):
+        if st.button(f"Traduzir para {idioma_destino}"):
             try:
                 client = get_openai_client()
                 
@@ -251,6 +260,8 @@ def main():
                     texto_traduzido = traduzir_texto(
                         full_text, 
                         client,
+                        idioma_origem=IDIOMAS_SUPORTADOS[idioma_origem],
+                        idioma_destino=IDIOMAS_SUPORTADOS[idioma_destino],
                         progress_callback=update_progress
                     )
                     
@@ -274,7 +285,7 @@ def main():
                     with col1:
                         output_filename = Path(uploaded_file.name).stem
                         st.download_button(
-                            label="Baixar Markdown original",
+                            label=f"Baixar Markdown ({idioma_origem})",
                             data=full_text,
                             file_name=f"{output_filename}.md",
                             mime="text/markdown",
@@ -283,9 +294,9 @@ def main():
                     # Botão para download do resultado em Markdown traduzido
                     with col2:
                         st.download_button(
-                            label="Baixar Markdown traduzido",
+                            label=f"Baixar Markdown ({idioma_destino})",
                             data=texto_traduzido,
-                            file_name=f"{output_filename}_traduzido.md",
+                            file_name=f"{output_filename}_{IDIOMAS_SUPORTADOS[idioma_destino]}.md",
                             mime="text/markdown",
                         )
                     
@@ -296,9 +307,9 @@ def main():
                             
                             if pdf_bytes:
                                 st.download_button(
-                                    label="Baixar PDF traduzido",
+                                    label=f"Baixar PDF ({idioma_destino})",
                                     data=pdf_bytes,
-                                    file_name=f"{output_filename}_traduzido.pdf",
+                                    file_name=f"{output_filename}_{IDIOMAS_SUPORTADOS[idioma_destino]}.pdf",
                                     mime="application/pdf",
                                 )
                             else:

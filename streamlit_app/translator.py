@@ -41,13 +41,26 @@ def seleciona_posteriores(texto, i, linhas):
 
     return texto_posterior
 
-def organiza_prompt(texto, texto_traduzido, i, linhas):
+# Mapeamento de códigos de idioma para nomes completos
+NOMES_IDIOMAS = {
+    "en": "inglês",
+    "pt": "português",
+    "es": "espanhol",
+    "fr": "francês",
+    "de": "alemão",
+    "it": "italiano"
+}
+
+def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idioma_destino="pt"):
     paragrafos_anteriores = seleciona_anteriores(texto_traduzido, i, linhas)
     paragrafos_posteriores = seleciona_posteriores(texto, i, linhas)
+    
+    origem_nome = NOMES_IDIOMAS.get(idioma_origem, idioma_origem)
+    destino_nome = NOMES_IDIOMAS.get(idioma_destino, idioma_destino)
 
-    prompt = f"""Você é um tradutor especializado em traduzir textos sobre pesquisa empírica em direito.
-            Irei te fornecer um trecho de um artigo acadêmico escrito em inglês e quero que você o traduza para o português.
-            O trecho pode ser qualquer parte do do texto - além de parágrafos, pode também ser um título, um subtítulo ou a descrição de uma tabela.
+    prompt = f"""Você é um tradutor especializado em traduzir textos.
+            Irei te fornecer um trecho de um texto escrito em {origem_nome} e quero que você o traduza para {destino_nome}.
+            O trecho pode ser qualquer parte do texto - além de parágrafos, pode também ser um título, um subtítulo ou a descrição de uma tabela.
 
             Para que você possa traduzir melhor, sempre que possível, irei te fornecer algumas linhas já traduzidas, que vem imediatamente antes da linha que você deve traduzir no texto.
             Além disso, sempre irei te fornecer algumas linhas que vem imediatamente depois da linha que você deve traduzir.
@@ -61,17 +74,19 @@ def organiza_prompt(texto, texto_traduzido, i, linhas):
     
     return prompt
 
-def traduzir_texto(texto: str, client: OpenAI, progress_callback=None) -> str:
+def traduzir_texto(texto: str, client: OpenAI, idioma_origem="en", idioma_destino="pt", progress_callback=None) -> str:
     """
-    Traduz o texto fornecido do inglês para o português.
+    Traduz o texto fornecido do idioma de origem para o idioma de destino.
     
     Args:
-        texto: Texto em inglês para ser traduzido
+        texto: Texto para ser traduzido
         client: Cliente OpenAI configurado
+        idioma_origem: Código ISO do idioma de origem (padrão: "en" para inglês)
+        idioma_destino: Código ISO do idioma de destino (padrão: "pt" para português)
         progress_callback: Função de callback para atualizar o progresso
         
     Returns:
-        Texto traduzido em português
+        Texto traduzido no idioma de destino
     """
     linhas = texto.split('\n')
     linhas_traduzidas = []
@@ -84,7 +99,7 @@ def traduzir_texto(texto: str, client: OpenAI, progress_callback=None) -> str:
                 progress_callback(i + 1, total_linhas)
             continue
             
-        prompt = organiza_prompt(texto, '\n'.join(linhas_traduzidas), i, linhas)
+        prompt = organiza_prompt(texto, '\n'.join(linhas_traduzidas), i, linhas, idioma_origem, idioma_destino)
         linha_traduzida = pergunta_LLM(client, 'gpt-4o-mini-2024-07-18', prompt, linha.strip())
         linhas_traduzidas.append(linha_traduzida.strip())
         
