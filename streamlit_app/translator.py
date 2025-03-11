@@ -6,6 +6,7 @@ from docx import Document
 from docx.shared import Pt, Cm
 
 from openai import OpenAI
+from language_utils import NOMES_IDIOMAS
 
 def pergunta_LLM(client, current_model, prompt, question):
     return client.chat.completions.create(
@@ -17,43 +18,43 @@ def pergunta_LLM(client, current_model, prompt, question):
           temperature=0
         ).choices[0].message.content
 
-def seleciona_anteriores(texto, i, linhas):
-    if i == 0:
-        texto_anterior = ""
-    elif i == 1:
-        texto_anterior = f'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n{linhas[0]}'
-    elif i == 2:
-        texto_anterior = 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[:2])
+def seleciona_contexto(texto, i, linhas, tipo="anteriores"):
+    """
+    Seleciona linhas de contexto (anteriores ou posteriores) para auxiliar na tradução.
+    
+    Args:
+        texto: Texto completo
+        i: Índice da linha atual
+        linhas: Lista de linhas
+        tipo: Tipo de contexto ("anteriores" ou "posteriores")
+        
+    Returns:
+        Texto formatado com as linhas de contexto
+    """
+    if tipo == "anteriores":
+        # Seleciona linhas anteriores (já traduzidas)
+        if i == 0:
+            return ""
+        elif i == 1:
+            return f'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n{linhas[0]}'
+        elif i == 2:
+            return 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[:2])
+        else:
+            return 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[(i-3):i])
     else:
-        texto_anterior = 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[(i-3):i])
-
-    return texto_anterior
-
-def seleciona_posteriores(texto, i, linhas):
-    if i >= len(linhas) - 1:
-        texto_posterior = ""
-    elif i == len(linhas) - 2:
-        texto_posterior = f'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n{linhas[i+1]}'
-    elif i == len(linhas) - 3:
-        texto_posterior = 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+3])
-    else:
-        texto_posterior = 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+4])
-
-    return texto_posterior
-
-# Mapeamento de códigos de idioma para nomes completos
-NOMES_IDIOMAS = {
-    "en": "inglês",
-    "pt": "português",
-    "es": "espanhol",
-    "fr": "francês",
-    "de": "alemão",
-    "it": "italiano"
-}
+        # Seleciona linhas posteriores (ainda não traduzidas)
+        if i >= len(linhas) - 1:
+            return ""
+        elif i == len(linhas) - 2:
+            return f'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n{linhas[i+1]}'
+        elif i == len(linhas) - 3:
+            return 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+3])
+        else:
+            return 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+4])
 
 def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idioma_destino="pt"):
-    paragrafos_anteriores = seleciona_anteriores(texto_traduzido, i, linhas)
-    paragrafos_posteriores = seleciona_posteriores(texto, i, linhas)
+    paragrafos_anteriores = seleciona_contexto(texto_traduzido, i, linhas, "anteriores")
+    paragrafos_posteriores = seleciona_contexto(texto, i, linhas, "posteriores")
     
     origem_nome = NOMES_IDIOMAS.get(idioma_origem, idioma_origem)
     destino_nome = NOMES_IDIOMAS.get(idioma_destino, idioma_destino)
