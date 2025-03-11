@@ -203,3 +203,18 @@ def show_api_key_error():
     2. Vá para a seção "Secrets"
     3. Adicione a variável `OPENAI_API_KEY` com sua chave
     """)
+
+def show_mistral_api_key_error():
+    """
+    Exibe uma mensagem de erro sobre a chave API do Mistral.
+    """
+    st.error("""
+    ⚠️ Configuração necessária:
+    
+    A chave API do Mistral não está configurada. Por favor, configure a variável de ambiente `MISTRAL_API_KEY` no Streamlit Cloud.
+    
+    Para configurar:
+    1. Acesse as configurações do seu app no Streamlit Cloud
+    2. Vá para a seção "Secrets"
+    3. Adicione a variável `MISTRAL_API_KEY` com sua chave
+    """)

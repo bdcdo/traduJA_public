@@ -12,7 +12,7 @@ from ..utils.pdf_processor import generate_formatted_pdf
 from .components import (
     create_file_uploader, create_language_selectors, create_translate_button,
     create_progress_indicators, create_download_buttons, show_error_message,
-    show_success_message, show_api_key_error
+    show_success_message, show_api_key_error, show_mistral_api_key_error
 )
 from ..config import get_openai_client
 
@@ -26,6 +26,10 @@ def render_main_page():
     # Verificar se as variáveis de ambiente necessárias estão configuradas
     if not os.getenv('OPENAI_API_KEY'):
         show_api_key_error()
+        return
+    
+    if not os.getenv('MISTRAL_API_KEY'):
+        show_mistral_api_key_error()
         return
     
     # Upload de arquivo

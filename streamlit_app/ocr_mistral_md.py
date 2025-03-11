@@ -1,6 +1,7 @@
 from mistralai import Mistral
 import os
 from typing import List
+from streamlit_app.config import get_mistral_api_key
 
 def process_pdf_ocr(pdf_path: str) -> List[str]:
     """
@@ -13,7 +14,11 @@ def process_pdf_ocr(pdf_path: str) -> List[str]:
         List[str]: List of extracted text in markdown format, one item per page
     """
     # Initialize Mistral client
-    client = Mistral(api_key='5fnlQe5w14rfnsCrYP07sojFe9Z3oGFv')
+    try:
+        api_key = get_mistral_api_key()
+        client = Mistral(api_key=api_key)
+    except ValueError as e:
+        raise ValueError(f"Erro ao inicializar cliente Mistral: {str(e)}")
 
     # Upload the PDF file
     with open(pdf_path, "rb") as pdf_file:

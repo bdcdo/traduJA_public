@@ -22,6 +22,19 @@ TraduJA é uma aplicação para conversão de documentos PDF para texto formatad
 pip install -r requirements.txt
 ```
 
+3. Configure as variáveis de ambiente:
+
+   - Copie o arquivo `.env.example` para `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   - Edite o arquivo `.env` e adicione suas chaves de API:
+   ```
+   OPENAI_API_KEY=sua_chave_openai_aqui
+   MISTRAL_API_KEY=sua_chave_mistral_aqui
+   ```
+
 ## Executando a aplicação
 
 Para iniciar a aplicação Streamlit:
@@ -32,6 +45,19 @@ streamlit run app.py
 ```
 
 A aplicação estará disponível no navegador, geralmente em http://localhost:8501
+
+## Configuração no Streamlit Cloud
+
+Para configurar as variáveis de ambiente no Streamlit Cloud:
+
+1. Acesse o painel de controle do seu aplicativo no Streamlit Cloud
+2. Vá para a seção "Secrets"
+3. Adicione as seguintes variáveis:
+   ```
+   OPENAI_API_KEY = "sua_chave_openai_aqui"
+   MISTRAL_API_KEY = "sua_chave_mistral_aqui"
+   ```
+4. Salve as alterações e reinicie o aplicativo
 
 ## Compatibilidade
 

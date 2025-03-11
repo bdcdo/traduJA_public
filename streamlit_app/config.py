@@ -66,6 +66,16 @@ def get_openai_client():
         raise ValueError("OPENAI_API_KEY não encontrada nas variáveis de ambiente")
     return OpenAI(api_key=api_key)
 
+# Configuração do cliente Mistral
+def get_mistral_api_key():
+    """
+    Retorna a chave API do Mistral.
+    """
+    api_key = os.getenv('MISTRAL_API_KEY')
+    if not api_key:
+        raise ValueError("MISTRAL_API_KEY não encontrada nas variáveis de ambiente")
+    return api_key
+
 def setup_environment():
     """
     Configura o ambiente da aplicação.
@@ -79,3 +89,6 @@ def setup_environment():
     # Verificar se as variáveis de ambiente necessárias estão configuradas
     if not os.getenv('OPENAI_API_KEY'):
         logger.error("OPENAI_API_KEY não encontrada nas variáveis de ambiente")
+    
+    if not os.getenv('MISTRAL_API_KEY'):
+        logger.error("MISTRAL_API_KEY não encontrada nas variáveis de ambiente")
