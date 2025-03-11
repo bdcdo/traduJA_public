@@ -28,8 +28,8 @@ def get_component_styles():
         background-color: #005b8c;
     }
     
-    /* Estilo para o botão de traduzir personalizado */
-    #traduzir-btn {
+    /* Estilo para o botão de traduzir */
+    [data-testid="baseButton-secondary"] {
         background-color: var(--accent-color);
         color: white;
         padding: 0.5rem 2rem;
@@ -41,14 +41,9 @@ def get_component_styles():
         transition: all 0.2s ease;
     }
     
-    #traduzir-btn:hover {
+    [data-testid="baseButton-secondary"]:hover {
         background-color: #005b8c;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Esconder o botão real que será acionado pelo JavaScript */
-    [data-testid="baseButton-secondary"] {
-        display: none !important;
     }
     """

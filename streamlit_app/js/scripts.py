@@ -41,29 +41,15 @@ def get_js_scripts():
         });
     }
     
-    // Função para fazer o botão personalizado de tradução funcionar
-    function configurarBotaoTraduzir() {
-        const botaoTraduzir = document.getElementById('traduzir-btn');
-        const botaoReal = document.querySelector('[data-testid="baseButton-secondary"]');
-        
-        if (botaoTraduzir && botaoReal) {
-            botaoTraduzir.addEventListener('click', function() {
-                botaoReal.click();
-            });
-        }
-    }
-    
     // Executar as funções quando o DOM estiver carregado
     document.addEventListener('DOMContentLoaded', function() {
         traduzirTextos();
-        configurarBotaoTraduzir();
     });
     
     // Executar as funções periodicamente para garantir que funcionem
     // mesmo após recarregar componentes
     setInterval(function() {
         traduzirTextos();
-        configurarBotaoTraduzir();
     }, 1000);
     </script>
     """

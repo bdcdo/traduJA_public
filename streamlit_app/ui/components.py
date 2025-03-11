@@ -56,7 +56,7 @@ def create_language_selectors():
 
 def create_translate_button(idioma_destino):
     """
-    Cria o botão de tradução personalizado.
+    Cria o botão de tradução centralizado.
     
     Args:
         idioma_destino: Idioma de destino para exibir no botão
@@ -64,20 +64,22 @@ def create_translate_button(idioma_destino):
     Returns:
         Boolean indicando se o botão foi clicado
     """
-    # Botão personalizado (visual)
-    st.markdown(
-        f"""<div class="center-content">
-            <button id="traduzir-btn" class="stButton">
-                Traduzir para {idioma_destino}
-            </button>
-        </div>""",
-        unsafe_allow_html=True
-    )
+    # Converter o idioma para minúsculas
+    idioma_minusculo = idioma_destino.lower()
     
-    # Botão real (escondido) que será acionado pelo JavaScript
-    traduzir_container = st.container()
-    with traduzir_container:
-        return st.button("Traduzir", key="traduzir_real")
+    # Usar a mesma abordagem de colunas dos botões de download para manter consistência visual
+    st.markdown('<div class="center-content" style="margin-top: 0.5rem;">', unsafe_allow_html=True)
+    
+    # Criar três colunas com a do meio maior para centralizar o botão
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    # Botão na coluna central com largura total para consistency visual
+    with col2:
+        clicked = st.button(f"Traduzir para {idioma_minusculo}", key="traduzir_real", use_container_width=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    return clicked
 
 def create_progress_indicators():
     """
@@ -164,12 +166,28 @@ def show_error_message(message):
 
 def show_success_message(message):
     """
-    Exibe uma mensagem de sucesso.
+    Exibe uma mensagem de sucesso centralizada.
     
     Args:
         message: Mensagem de sucesso a ser exibida
     """
-    st.success(message)
+    # Usar abordagem direta para garantir a centralização do texto
+    custom_success_message = f"""
+    <div style="
+        width: 100%; 
+        padding: 0.5rem; 
+        background-color: rgba(0, 255, 0, 0.1); 
+        border: 1px solid rgba(0, 255, 0, 0.2);
+        border-radius: 0.25rem;
+        margin: 1rem 0;
+        text-align: center;
+    ">
+        <div style="color: rgb(0, 130, 0); text-align: center; width: 100%;">
+            {message}
+        </div>
+    </div>
+    """
+    st.markdown(custom_success_message, unsafe_allow_html=True)
 
 def show_api_key_error():
     """
