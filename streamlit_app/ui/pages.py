@@ -112,13 +112,12 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
             
             # Função para atualizar informações de tokens e custos
             def update_token_info(input_tokens, output_tokens, input_cost, output_cost, total_cost):
-                token_info_container.markdown(
-                    f"""<div class='token-info'>
-                        <p><b>Tokens:</b> {input_tokens:,} entrada | {output_tokens:,} saída | {input_tokens + output_tokens:,} total</p>
-                        <p><b>Custo:</b> ${input_cost:.4f} entrada | ${output_cost:.4f} saída | ${total_cost:.4f} total</p>
-                    </div>""", 
-                    unsafe_allow_html=True
-                )
+                # Atualizar na sessão
+                from ..utils.session_manager import update_token_info as update_session_token_info
+                update_session_token_info(input_tokens, output_tokens, input_cost, output_cost, total_cost)
+                
+                # Exibir na interface (apenas durante o processo de tradução)
+                display_token_info(token_info_container, input_tokens, output_tokens, input_cost, output_cost, total_cost)
             
             # Iniciar a tradução com a barra de progresso e informações de tokens
             texto_traduzido = traduzir_texto(
@@ -133,11 +132,10 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
             # Armazenar o texto traduzido na sessão
             update_translated_text(texto_traduzido)
             
-            # Limpar a barra de progresso e mostrar sucesso
+            # Limpar a barra de progresso, status e o container de tokens
             progress_container.empty()
             status_text.empty()
-            
-            # Manter as informações de tokens visíveis após a conclusão
+            token_info_container.empty()  # Limpar o container de tokens para evitar duplicação
             
         finally:
             # Garantir que o arquivo temporário seja sempre removido
@@ -146,6 +144,42 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
                 
     except Exception as e:
         show_error_message(f"Ocorreu um erro inesperado: {str(e)}")
+
+def display_token_info(container=None, input_tokens=None, output_tokens=None, input_cost=None, output_cost=None, total_cost=None):
+    """
+    Exibe as informações de tokens e custos.
+    
+    Args:
+        container: Container para exibir as informações (opcional)
+        input_tokens: Número de tokens de entrada (opcional)
+        output_tokens: Número de tokens de saída (opcional)
+        input_cost: Custo dos tokens de entrada (opcional)
+        output_cost: Custo dos tokens de saída (opcional)
+        total_cost: Custo total (opcional)
+    """
+    # Se não foram fornecidos parâmetros, usar os valores da sessão
+    if input_tokens is None and st.session_state.token_info:
+        input_tokens = st.session_state.token_info['input_tokens']
+        output_tokens = st.session_state.token_info['output_tokens']
+        input_cost = st.session_state.token_info['input_cost']
+        output_cost = st.session_state.token_info['output_cost']
+        total_cost = st.session_state.token_info['total_cost']
+    
+    # Se não há informações de tokens, não exibir nada
+    if input_tokens is None:
+        return
+    
+    # Criar o HTML para exibir as informações
+    token_info_html = f"""<div class='token-info'>
+        <p><b>Tokens:</b> {input_tokens:,} entrada | {output_tokens:,} saída | {input_tokens + output_tokens:,} total</p>
+        <p><b>Custo:</b> ${input_cost:.4f} entrada | ${output_cost:.4f} saída | ${total_cost:.4f} total</p>
+    </div>"""
+    
+    # Exibir no container fornecido ou criar um novo
+    if container:
+        container.markdown(token_info_html, unsafe_allow_html=True)
+    else:
+        st.markdown(token_info_html, unsafe_allow_html=True)
 
 def display_download_options(idioma_origem, idioma_destino):
     """
@@ -161,5 +195,11 @@ def display_download_options(idioma_origem, idioma_destino):
             pdf_bytes = generate_formatted_pdf(st.session_state.translated_text)
             update_pdf_bytes(pdf_bytes)
     
+    # Não exibir informações de tokens aqui, pois já estão sendo exibidas no container
+    # durante o processo de tradução
+    
     # Criar botões de download
     create_download_buttons(idioma_origem, idioma_destino)
+    
+    # Exibir informações de tokens após criar os botões de download
+    display_token_info()

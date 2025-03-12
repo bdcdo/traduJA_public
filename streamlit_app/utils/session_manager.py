@@ -39,6 +39,10 @@ def initialize_session_state():
     # Mensagem de sucesso
     if 'mensagem_sucesso' not in st.session_state:
         st.session_state.mensagem_sucesso = None
+        
+    # Informações de tokens e custos
+    if 'token_info' not in st.session_state:
+        st.session_state.token_info = None
 
 def update_processed_text(text, filename):
     """
@@ -117,3 +121,22 @@ def reset_translation_state():
     st.session_state.output_filename = None
     st.session_state.traducao_concluida = False
     st.session_state.mensagem_sucesso = None
+
+def update_token_info(input_tokens, output_tokens, input_cost, output_cost, total_cost):
+    """
+    Atualiza as informações de tokens e custos na sessão.
+    
+    Args:
+        input_tokens: Número de tokens de entrada
+        output_tokens: Número de tokens de saída
+        input_cost: Custo dos tokens de entrada
+        output_cost: Custo dos tokens de saída
+        total_cost: Custo total
+    """
+    st.session_state.token_info = {
+        'input_tokens': input_tokens,
+        'output_tokens': output_tokens,
+        'input_cost': input_cost,
+        'output_cost': output_cost,
+        'total_cost': total_cost
+    }
