@@ -77,6 +77,9 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
         # Criar indicadores de progresso
         progress_container, progress_bar, status_text = create_progress_indicators()
         
+        # Criar container para informações de tokens e custos
+        token_info_container = st.empty()
+        
         # Fase 1: Processamento do PDF
         status_text.markdown("<div class='status-text'>Lendo o PDF... Isso pode levar alguns instantes.</div>", unsafe_allow_html=True)
         progress_bar.progress(0.1)  # Mostrar algum progresso inicial
@@ -107,13 +110,24 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
                 progress_bar.progress(progress)
                 status_text.markdown(f"<div class='status-text'>Traduzindo... {current}/{total} linhas ({int((current/total) * 100)}%)</div>", unsafe_allow_html=True)
             
-            # Iniciar a tradução com a barra de progresso
+            # Função para atualizar informações de tokens e custos
+            def update_token_info(input_tokens, output_tokens, input_cost, output_cost, total_cost):
+                token_info_container.markdown(
+                    f"""<div class='token-info'>
+                        <p><b>Tokens:</b> {input_tokens:,} entrada | {output_tokens:,} saída | {input_tokens + output_tokens:,} total</p>
+                        <p><b>Custo:</b> ${input_cost:.4f} entrada | ${output_cost:.4f} saída | ${total_cost:.4f} total</p>
+                    </div>""", 
+                    unsafe_allow_html=True
+                )
+            
+            # Iniciar a tradução com a barra de progresso e informações de tokens
             texto_traduzido = traduzir_texto(
                 full_text, 
                 client,
                 idioma_origem=IDIOMAS_SUPORTADOS[idioma_origem]["code"],
                 idioma_destino=IDIOMAS_SUPORTADOS[idioma_destino]["code"],
-                progress_callback=update_progress
+                progress_callback=update_progress,
+                token_callback=update_token_info
             )
             
             # Armazenar o texto traduzido na sessão
@@ -122,6 +136,8 @@ def process_translation(uploaded_file, idioma_origem, idioma_destino):
             # Limpar a barra de progresso e mostrar sucesso
             progress_container.empty()
             status_text.empty()
+            
+            # Manter as informações de tokens visíveis após a conclusão
             
         finally:
             # Garantir que o arquivo temporário seja sempre removido

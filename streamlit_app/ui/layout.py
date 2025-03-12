@@ -18,9 +18,26 @@ def setup_page_config():
 
 def apply_custom_css():
     """
-    Aplica o CSS personalizado à aplicação.
+    Aplica estilos CSS personalizados à aplicação.
     """
     st.markdown(load_css(), unsafe_allow_html=True)
+
+    # Add token info styling
+    st.markdown("""
+    <style>
+        .token-info {
+            background-color: #f0f2f6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .token-info p {
+            margin: 5px 0;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 def create_header():
     """
