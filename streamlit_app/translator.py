@@ -59,7 +59,7 @@ def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idiom
     origem_nome = NOMES_IDIOMAS.get(idioma_origem, idioma_origem)
     destino_nome = NOMES_IDIOMAS.get(idioma_destino, idioma_destino)
 
-    prompt = f"""Você é um tradutor especializado em traduzir textos.
+    prompt = f"""Você é um tradutor senior.
             Irei te fornecer um trecho de um texto escrito em {origem_nome} e quero que você o traduza para {destino_nome}.
             O trecho pode ser qualquer parte do texto - além de parágrafos, pode também ser um título, um subtítulo ou a descrição de uma tabela.
 
@@ -68,6 +68,7 @@ def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idiom
             Utilize o contexto apresentado por essas linhas anteriores e posteriores para traduzir melhor. No entanto, traduza apenas a linha indicada como sendo a que você deve traduzir.
 
             Me responda direto ao ponto, respondendo única e exclusivamente com a tradução da linha indicada.
+            Talvez você seja pedido a traduzir algo que não considera fazer sentido traduzir, como '---'. Nesse caso, apenas repita o que foi pedido que você traduza.
 
             {paragrafos_anteriores}
             {paragrafos_posteriores}
@@ -101,7 +102,7 @@ def traduzir_texto(texto: str, client: OpenAI, idioma_origem="en", idioma_destin
             continue
             
         prompt = organiza_prompt(texto, '\n'.join(linhas_traduzidas), i, linhas, idioma_origem, idioma_destino)
-        linha_traduzida = pergunta_LLM(client, 'gpt-4o-mini-2024-07-18', prompt, linha.strip())
+        linha_traduzida = pergunta_LLM(client, 'gpt-4o-2024-08-06', prompt, linha.strip())
         linhas_traduzidas.append(linha_traduzida.strip())
         
         if progress_callback:

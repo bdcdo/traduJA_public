@@ -80,8 +80,6 @@ def process_single_pdf(pdf_path: str, output_path: str) -> None:
         # Combine all pages into a single string with page separators
         full_text = ""
         for i, page_text in enumerate(extracted_pages):
-            if i > 0:
-                full_text += "\n\n---\n\n"  # Add page separator in markdown format
             full_text += page_text
         
         # Save to markdown file
