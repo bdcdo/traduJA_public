@@ -75,8 +75,8 @@ def process_uploaded_pdf(temp_path: str) -> Tuple[str, bool]:
     try:
         extracted_pages = process_pdf_ocr(temp_path)
         
-        # Combinar todas as páginas em um único texto
-        full_text = "\n\n---\n\n".join(extracted_pages)
+        # Combinar todas as páginas em um único texto sem delimitadores
+        full_text = "".join(extracted_pages)
         return full_text, True
         
     except Exception as e:

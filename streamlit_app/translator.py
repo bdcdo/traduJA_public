@@ -59,16 +59,18 @@ def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idiom
     origem_nome = NOMES_IDIOMAS.get(idioma_origem, idioma_origem)
     destino_nome = NOMES_IDIOMAS.get(idioma_destino, idioma_destino)
 
-    prompt = f"""Você é um tradutor senior.
+    prompt = f"""Você é um tradutor senior especializado na tradução de {origem_nome} para {destino_nome}.
             Irei te fornecer um trecho de um texto escrito em {origem_nome} e quero que você o traduza para {destino_nome}.
-            O trecho pode ser qualquer parte do texto - além de parágrafos, pode também ser um título, um subtítulo ou a descrição de uma tabela.
+            O trecho pode ser qualquer parte do texto - como parágrafos, títulos, subtítulos ou descrições de tabelas.
 
-            Para que você possa traduzir melhor, sempre que possível, irei te fornecer algumas linhas já traduzidas, que vem imediatamente antes da linha que você deve traduzir no texto.
-            Além disso, sempre irei te fornecer algumas linhas que vem imediatamente depois da linha que você deve traduzir.
-            Utilize o contexto apresentado por essas linhas anteriores e posteriores para traduzir melhor. No entanto, traduza apenas a linha indicada como sendo a que você deve traduzir.
+            Para garantir consistência e precisão na tradução:
+            1. Use o contexto das linhas anteriores (já traduzidas) e posteriores (ainda não traduzidas) fornecidas
+            2. Mantenha o mesmo tom, estilo e terminologia do texto original e das partes já traduzidas
+            3. Preserve formatações especiais, como marcadores, numerações ou ênfases
+            4. Traduza apenas a linha indicada, nada mais
 
-            Me responda direto ao ponto, respondendo única e exclusivamente com a tradução da linha indicada.
-            Talvez você seja pedido a traduzir algo que não considera fazer sentido traduzir. Nesse caso, apenas repita o que foi pedido que você traduza.
+            Responda apenas com a tradução da linha indicada, sem explicações ou comentários adicionais.
+            Se encontrar termos técnicos ou específicos que não devem ser traduzidos, mantenha-os no idioma original.
 
             {paragrafos_anteriores}
             {paragrafos_posteriores}
