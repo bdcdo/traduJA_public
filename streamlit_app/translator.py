@@ -15,7 +15,7 @@ def pergunta_LLM(client, current_model, prompt, question):
             {"role": "system", "content": prompt},
             {"role": "user", "content": question}
           ],
-          temperature=0
+          temperature=0.6
         ).choices[0].message.content
 
 def seleciona_contexto(texto, i, linhas, tipo="anteriores"):
@@ -68,7 +68,7 @@ def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idiom
             Utilize o contexto apresentado por essas linhas anteriores e posteriores para traduzir melhor. No entanto, traduza apenas a linha indicada como sendo a que você deve traduzir.
 
             Me responda direto ao ponto, respondendo única e exclusivamente com a tradução da linha indicada.
-            Talvez você seja pedido a traduzir algo que não considera fazer sentido traduzir, como '---'. Nesse caso, apenas repita o que foi pedido que você traduza.
+            Talvez você seja pedido a traduzir algo que não considera fazer sentido traduzir. Nesse caso, apenas repita o que foi pedido que você traduza.
 
             {paragrafos_anteriores}
             {paragrafos_posteriores}
