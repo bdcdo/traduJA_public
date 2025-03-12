@@ -21,36 +21,46 @@ def pergunta_LLM(client, current_model, prompt, question):
 def seleciona_contexto(texto, i, linhas, tipo="anteriores"):
     """
     Seleciona linhas de contexto (anteriores ou posteriores) para auxiliar na tradução.
-    
-    Args:
-        texto: Texto completo
-        i: Índice da linha atual
-        linhas: Lista de linhas
-        tipo: Tipo de contexto ("anteriores" ou "posteriores")
-        
-    Returns:
-        Texto formatado com as linhas de contexto
     """
+    def get_non_empty_lines(start, end, lines):
+        return [l for l in lines[start:end] if l.strip()]
+
     if tipo == "anteriores":
         # Seleciona linhas anteriores (já traduzidas)
         if i == 0:
             return ""
-        elif i == 1:
-            return f'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n{linhas[0]}'
-        elif i == 2:
-            return 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[:2])
         else:
-            return 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(linhas[(i-3):i])
+            # Pegar até 3 linhas não vazias anteriores
+            context_lines = []
+            count = 0
+            pos = i - 1
+            while pos >= 0 and count < 3:
+                if linhas[pos].strip():
+                    context_lines.insert(0, linhas[pos])
+                    count += 1
+                pos -= 1
+            
+            if not context_lines:
+                return ""
+            return 'Aqui estão as linhas imediatamente anteriores a essa, já traduzidas:\n' + "\n".join(context_lines)
     else:
         # Seleciona linhas posteriores (ainda não traduzidas)
         if i >= len(linhas) - 1:
             return ""
-        elif i == len(linhas) - 2:
-            return f'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n{linhas[i+1]}'
-        elif i == len(linhas) - 3:
-            return 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+3])
         else:
-            return 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(linhas[i+1:i+4])
+            # Pegar até 3 linhas não vazias posteriores
+            context_lines = []
+            count = 0
+            pos = i + 1
+            while pos < len(linhas) and count < 3:
+                if linhas[pos].strip():
+                    context_lines.append(linhas[pos])
+                    count += 1
+                pos += 1
+            
+            if not context_lines:
+                return ""
+            return 'Aqui estão as linhas imediatamente posteriores a essa, ainda não traduzidas:\n' + "\n".join(context_lines)
 
 def organiza_prompt(texto, texto_traduzido, i, linhas, idioma_origem="en", idioma_destino="pt"):
     paragrafos_anteriores = seleciona_contexto(texto_traduzido, i, linhas, "anteriores")
